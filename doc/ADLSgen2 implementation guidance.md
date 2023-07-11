@@ -1,18 +1,18 @@
 ### Background
-Azurite is an open-source Azure Storage API compatible server (emulator). It currently supports the Blob, Queue, and Table services. We have received many customer asks on ADLSGen2 support in Azurite from many channels, include but not limited to [github issues](https://github.com/Azure/Azurite/issues/553), email, and requests from interested teams at Microsoft.
+Azurite is an open-source Azure Storage API compatible server (emulator). It currently supports the Blob, Queue, and Table services. We have received many customer asks on ADLS Gen2 support in Azurite from many channels, include but not limited to [github issues](https://github.com/Azure/Azurite/issues/553), email, and requests from interested teams at Microsoft.
 
-We have get 2 PRs ([PR1](https://github.com/Azure/Azurite/pull/1933), [PR2](https://github.com/Azure/Azurite/pull/1934)) submitted by the community , try to implement ADLSgen2 in Azurite. However, we can't merge them now since they might not meet our expectation and merge bar.
+We have get 2 PRs ([PR1](https://github.com/Azure/Azurite/pull/1933), [PR2](https://github.com/Azure/Azurite/pull/1934)) submitted by the community to implement ADLSgen2 in Azurite. However, we are unable to merge them at this time since they do not meet our expectations and merge bar.
 
-Azurite welcome contribution. To better coorporate with community on implement ADLSGen2 in Azurite, this document gives the details of the plan we suggest to implement ADLS Gen 2 in Azurite, and our expectations for community submissions that we can accept as PRs. 
+Azurite welcomes contributions. To better cooperate with the community on an implementation of ADLS Gen2 in Azurite, this document gives the details of the plan we suggest to implement ADLS Gen 2 in Azurite, and our expectations for community submissions that we can accept as PRs. 
 
-### ADLSGen2 Introduction
-It's very important to understand ADLSgen2 feature before implementing it in Azurite.
+### ADLS Gen2 Introduction
+It's very important to understand ADLS Gen2 feature before implementing it in Azurite.
 
-[Azure Data Lake Storage Gen2](https://learn.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-introduction) (aka: AdlsGen2) is a set of capabilities dedicated to big data analytics and built on Azure Blob Storage. 
+[Azure Data Lake Storage Gen2](https://learn.microsoft.com/azure/storage/blobs/data-lake-storage-introduction) (aka: Adls Gen2) is a set of capabilities dedicated to big data analytics and built on Azure Blob Storage. 
 #### FNS vs. HNS
 A normal Azure storage account is with Flat namespace (FNS). 
 
-Users can provision a [hierarchical namespace](https://learn.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-namespace) (HNS) storage account by creating storage account with HNS, or migrate an existing storage account from FNS to HNS. However, users can’t revert HNS accounts back to FNS.
+Users can provision a [hierarchical namespace](https://learn.microsoft.com/azure/storage/blobs/data-lake-storage-namespace) (HNS) storage account by creating storage account with HNS, or migrate an existing storage account from FNS to HNS. However, users can’t revert HNS accounts back to FNS.
 
 HNS is a key feature that Azure Data Lake Storage Gen2 provides:
 - High-performance data access at object storage scale and price.
@@ -20,11 +20,11 @@ HNS is a key feature that Azure Data Lake Storage Gen2 provides:
 - Familiar interface style like file systems
 
 #### DFS vs Blob
-Azure Data Lake Storage Gen2 is primarily designed to work with Hadoop and all frameworks that use HDFS as their data access layer. A new endpoint DFS is introduced ADLSGen2.
+Azure Data Lake Storage Gen2 is primarily designed to work with Hadoop and all frameworks that use HDFS as their data access layer. A new endpoint DFS is introduced ADLS Gen2.
 
-The DFS endpoint is available on both HNS and FNS accounts. Per our test, on FNS account, the [DFS rest API](https://learn.microsoft.com/en-us/rest/api/storageservices/data-lake-storage-gen2) behavior is different from HNS account, [Blob rest API](https://learn.microsoft.com/en-us/rest/api/storageservices/blob-service-rest-api) also behaviors differently on FNS/HNS account. The [rest API doc](https://learn.microsoft.com/en-us/rest/api/storageservices/data-lake-storage-gen2) already includes part of the differences. 
+The DFS endpoint is available on both HNS and FNS accounts. Per our test, on FNS account, the [DFS rest API](https://learn.microsoft.com/rest/api/storageservices/data-lake-storage-gen2) behavior is different from HNS account, [Blob rest API](https://learn.microsoft.com/rest/api/storageservices/blob-service-rest-api) also behaviors differently on FNS/HNS account. The [rest API doc](https://learn.microsoft.com/rest/api/storageservices/data-lake-storage-gen2) already includes part of the differences. 
 
-### ADLSgen2 in Azurite
+### ADLS gen2 in Azurite
 #### Current status: 
 <table>
 <tr>  
@@ -42,7 +42,7 @@ The DFS endpoint is available on both HNS and FNS accounts. Per our test, on FNS
 Behavior similar as FNS blob, but should have a little different on API, and performance different</td>
 </tr>
 <tr>
-<td>Dfs Endpoint API</td>
+<td>DFS Endpoint API</td>
 <td>Not in Azurite, Phase I in below plan.
   
 Support most DFS API, but some action not supported and API behavior different, and performance/atomic different</td>
@@ -61,24 +61,25 @@ Support all DFS APIs, including ACL/permission support.
         1. Don’t need to change data store structure.
         2. Don’t need Azurite user to differ HNS/FNS account.
            
-2. The change will add all dfs API interface to Azurite, which can help to support phase II.
+2. The change will add all DFS API interface to Azurite, which can help to support phase II.
    
-4. Code change should be split into several small PRs as following:
-    1. 1 PR to add dfs swagger and the auto-generated API interface (no manual change on auto generated code)
+4. Code change should be split into several small PRs as follows:
+    1. 1 PR to add DFS swagger and the auto-generated API interface (no manual change on auto generated code)
     2. 1 PR to add DFS endpoint 
-    3. Several PRs to implement each dfs API (with credential handler), include testing
+    3. Several PRs to implement each DFS API (with credential handler), include testing
        
-5. Need make sure each API behavior is aligned on rest API doc , also aligned with real Azure Server. See more in validation criteria.
+5. Need make sure each API behavior is aligned on rest API doc, also aligned with real Azure Storage Server. See more in validation criteria.
    
-7. The blob/dfs endpoint should share same data store, talk to same instance of BlobLokiMetadataStore & BlobSqlMetadataStore
+7. The blob/DFS endpoint should share same data store, talk to same instance of BlobLokiMetadataStore & BlobSqlMetadataStore
    
-9. Need to work with Azure Storage SDKs to change and support new dfs port (say: 10004)
-    1. E.g. .Net SDK need changes the blob/dfs Uri convert function in [this file](https://github.com/Azure/azure-sdk-for-net/blob/e8c40cc204b8cf750fcc820eab90d11f80612c3a/sdk/storage/Azure.Storage.Files.DataLake/src/DataLakeUriBuilder.cs#L275)
+9. Need to work with Azure Storage SDKs to change and support new DFS port (say: 10004)
+    1. E.g. .Net SDK need changes the blob/DFS Uri convert function in [this file](https://github.com/Azure/azure-sdk-for-net/blob/e8c40cc204b8cf750fcc820eab90d11f80612c3a/sdk/storage/Azure.Storage.Files.DataLake/src/DataLakeUriBuilder.cs#L275)
        
 ##### Phase II: implementation Blob/DFS on HNS account
-1. Azurite user need configure each Azurite Account type as HNS/FNS when Azurite starts up. 
+1. Azurite users need to configure each Azurite Account type as HNS/FNS when Azurite starts up. 
     1. Need design how to input the config (default should be FNS)
-    2.How to handle it when user start Azurite with change account type? (Report error? )
+    2. How to handle it when user start Azurite with change account type? (Report error?)
+    3. Azurite won't support FNS/HNS migration and account type change. The storage account type is finalized after creation. A wrong configuration (like wrong HNS/FNS type) should get error reported.
 
 2. Implement HNS metadata Store in Azurite
     1. Any schema change or new table design should be reviewed and signed off.
@@ -125,10 +126,10 @@ Support all DFS APIs, including ACL/permission support.
     - Need clean/detail doc to introduce the implementation.
 
 ### Reference:
-[Azure Data Lake Storage Gen2 Introduction - Azure Storage | Microsoft Learn](https://learn.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-introduction)
+[Azure Data Lake Storage Gen2 Introduction - Azure Storage | Microsoft Learn](https://learn.microsoft.com/azure/storage/blobs/data-lake-storage-introduction)
 
-[Azure Data Lake Storage Gen2 hierarchical namespace - Azure Storage | Microsoft Learn](https://learn.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-namespace)
+[Azure Data Lake Storage Gen2 hierarchical namespace - Azure Storage | Microsoft Learn](https://learn.microsoft.com/azure/storage/blobs/data-lake-storage-namespace)
 
-[Blob Storage REST API - Azure Storage | Microsoft Learn](https://learn.microsoft.com/en-us/rest/api/storageservices/blob-service-rest-api)
+[Blob Storage REST API - Azure Storage | Microsoft Learn](https://learn.microsoft.com/rest/api/storageservices/blob-service-rest-api)
 
-[Azure Data Lake Storage Gen2 REST API reference - Azure Storage | Microsoft Learn](https://learn.microsoft.com/en-us/rest/api/storageservices/data-lake-storage-gen2)
+[Azure Data Lake Storage Gen2 REST API reference - Azure Storage | Microsoft Learn](https://learn.microsoft.com/rest/api/storageservices/data-lake-storage-gen2)
